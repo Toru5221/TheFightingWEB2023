@@ -1,6 +1,18 @@
 <?php
 require_once './function.php';
 $fh = openFile();
+$result = [];
+if ( $_SERVER["REQUEST_METHOD"] == "POST") {
+    /* POSTをされたかどうかを判定 */
+
+    // validation処理(リクエストの値チェック)
+    $result = validationPost($_POST['name'], $_POST['comment'])
+    if ($result['name'] && $result['comment']) {
+        // 保存処理
+        requestPost($fh)
+    }
+    
+}
 $bbs = getBbs($fh);
 closeFile($fh);
 
@@ -16,7 +28,7 @@ closeFile($fh);
         <h1>BBS</h1>
             <div>
                 <p>これは良い感じのBBSです<br>
-                   みんな好きに書き込んでね！
+                みんな好きに書き込んでね！
                 </p>
             </div>
         <form id="ore" action="/bbs.php" method="POST" class="bbs.php">
@@ -31,10 +43,9 @@ closeFile($fh);
                 <label for="comment">コメント： </label> <br>
                 <textarea id="comment" name="Comment" cols="30" rows="10" placeholder="コメントをどうぞ"></textarea>
             </div>
-               
+            
             <div>
-                <!-- 画像は後で -->
-                 
+                <!-- 画像は後で -->                 
             </div>
 
             <div>
