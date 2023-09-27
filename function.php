@@ -16,7 +16,7 @@ function validationPost($name, $comment){
     ];
 
     // name -> アルファベット（大文字/小文字）と数字のみ / 32文字までに制限 / 3文字以上
-    if (preg_match('/[A-Za-z0-9]{3,32}/', $name) !=== 1){
+    if (preg_match('/[A-Za-z0-9]{3,32}/', $name) !== 1){
         $result['name'] = false;
         // (strlen($name) > 32 || strlen($name) < 3 || /* アルファベットか数字以外のものが入っている場合 */)
     }
@@ -42,6 +42,7 @@ function requestPost($fh) {
 
 function getBbs($fh) {
     $bbsArray = [];
+    rewind($fh);
 
     while (($buffer = fgetcsv($fh, 4096)) !== false) {
         $bbsArray[] = [
