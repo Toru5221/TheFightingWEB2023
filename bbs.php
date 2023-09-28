@@ -19,7 +19,7 @@ closeFile($fh);
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Formサンプル</title>
+    <title>BBSサンプル</title>
 </head>
 <style>
 .error-text {
