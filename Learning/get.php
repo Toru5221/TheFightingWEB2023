@@ -13,9 +13,9 @@
         <div>
             <label for="text">テキスト入力: </label> <br>
             <input type="text" name="text" id="text" value="<?php echo $_POST['text']; ?>" /> 
-         </div>
+        </div>
 
-         <div>
+        <div>
             <label for="number">数字のみ入力できる: </label> <br>
             <input type="number" name="number" id="number"value="<?php echo $_POST['number']; ?>" />
         </div>
