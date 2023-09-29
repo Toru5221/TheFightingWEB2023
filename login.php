@@ -1,31 +1,22 @@
 <?php
-    session_start();
-        //var_dump($_COOKIE);
-    require_once './function.php'; 
+require_once './function.php';
 
-        //echo '<pre>';
-        //var_dump($_SESSION);
-        //echo '</pre>';
+// POSTをされたかどうか
+if ($_SERVER["REQUEST_METHOD"] == "POST"){
+  $pdo = dbConnect();
+  // @todo validation check
 
+  // account情報とPOSTの情報が一致するかどうか
+  $account = checkLogin($pdo, $_POST['name'], $_POST['password']);
 
-    // POSTをされたかどうか
-    if ($_SERVER ["REQUEST_METHOD"] == "POST") {
-        // @todo validation check
-
-        // account情報とPOSTの情報が一致するかどうか
-        $result = checkLogin($_POST['id'], $_POST['password']);
-
-        if($result){
-        // 一致した場合には、ログイン状態にする
-        //setcookie('login', 'admin'); 過去に使用
-
-        $_SESSION['login'] = $_POST['id'];
-        }
-        // @todo login処理が終わった後リダイレクトをしたしです
-        
-    }  else{
-        // @todo ここどうする？
-    }
-        //echo '<pre>';
-        //var_dump($_SESSION);
-        //echo '</pre>';
+  if ($account) {
+    $_SESSION['account'] = $account;
+    // $account = findAccount($pdo, $_POST['name']);
+    // var_dump($account);
+    // // 一致した場合には、ログイン状態にする
+    // $_SESSION['account'] = $account;
+    // $_SESSION['login'] = $account['name'];
+    // $_SESSION['isAdmin'] = ($account['isAdmin'] == 1);
+  }
+}
+header('Location: /bbs.php');
