@@ -1,10 +1,11 @@
 <?php
+session_start();
 require_once './function.php';
 $result = [
     'name' => true,
     'comment' => true
 ];
-$fh = openFile();
+$fh = openFile(COMMENT_FILE);
 if ($_SERVER ["REQUEST_METHOD"] == "POST") {
     // validation処理
     $result = validationPost($_POST['name'], $_POST['comment']);
@@ -33,19 +34,19 @@ closeFile($fh);
             みんな好きに書き込んでね！
         </p>
     </div>
-    <form>
 
-    </form>
-    <form action="/bbs.php" method="POST">
+    <?php if($_SESSION['login']):  ?>
+        <form action="/bbs.php" method="POST">
         <div>
+            <!-- 名前 -->
             <label for="name">
                 名前: <input type="text" id="name" name="name" value="" />
             </label>
-            <?php if($result['name'] === false): ?>
-                <p class="error-text">入力できるのは英数のみ3文字以上32文字以下です</p>
-            <?php endif; ?>
+            
         </div>
+
         <div>
+            <!-- コメント -->
             <label for="comment">
                 コメント:<textarea id="comment" name="comment" ></textarea>
             </label>
@@ -53,9 +54,38 @@ closeFile($fh);
                 <p class="error-text">入力は1024文字までです</p>
             <?php endif; ?>
         </div>
-        <input type="submit" value="送信">
-    </form>
+
+            <!-- 投稿 -->
+        <input type="submit" value="投稿">
+        
+            <!-- 画像は後で -->
+        </form>
+    <?php else: ?>
+
+        <form action="/login.php" method="POST">
+        <div>
+                    <!-- ログインID -->
+                    <label for="id">
+                        ID: <input type="text" id="id" name="id" value="" />
+                    </label>
+                    
+                </div>
+                <div>
+                    <!-- ログインPassword -->
+                    <label for="password">
+                        Password: <input type="password" id="password" name="password" value="" />
+                    </label>
+                    <?php if($result['password'] === false): ?>
+                        <p class="error-text">入力は1024文字までです</p>
+                    <?php endif; ?>
+                </div>
+                        <!-- 投稿 -->
+                    <input type="submit" value="Login">
+        </form>
+    <?php endif; ?>
+
     <hr />
+
 <h2>書き込み一覧だよー！</h2>
 <div>
 <?php
