@@ -3,15 +3,15 @@ require_once './function.php';
 // var_dump($_POST);
 $result = [
 //   'id' => true
-'name' => true
+  'name' => true
 ];
 if ($_SERVER["REQUEST_METHOD"] == "POST"){
     $pdo = dbConnect();
-    $result['name'] = checkDeplicateAccount($pdo, $_POST['name']);
-    if($result['name']) {
+  $result['name'] = checkDeplicateAccount($pdo, $_POST['name']);
+  if($result['name']) {
     saveAccount($pdo, $_POST['name'], $_POST['password'], !empty($_POST['is_admin']));
     header('Location: /bbs.php');
-    }
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     <body>
         <h1>BBS - account作成</h1>
         <div>
-        <p>idとpasswordを入れてね</p>
+          <p>idとpasswordを入れてね</p>
         </div>
         <form action="/account.php" method="POST">
             <div>
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
                     ID:<input type="text" id="name" name="name" value="">
                 </label>
                 <?php if($result['id'] === false): ?>
-                <p class="error-text">重複したidが既に存在しています</p>
+                  <p class="error-text">重複したidが既に存在しています</p>
                 <?php endif; ?>
             </div>
             <br>
