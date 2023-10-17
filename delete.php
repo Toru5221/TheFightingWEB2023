@@ -1,10 +1,16 @@
 <?php
 require_once './function.php';
 
-// var_dump($_POST);
-if (
+// POSTをされたかどうか
+if(
   $_SERVER["REQUEST_METHOD"] == "POST" &&
-  $_POST['bbs_id']){
-  deleteBbs($_POST['bbs_id']);
+  $_POST['bbs_id']) {
+    $pdo = dbConnect();
+
+
+  // @todo bb_idの存在確認
+
+  // 削除処理
+  deleteBbs($pdo, $_POST['bbs_id']);
 }
 header('Location: /bbs.php');

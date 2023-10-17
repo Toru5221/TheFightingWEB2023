@@ -1,27 +1,23 @@
 <?php
 define('COMMENT_FILE', './bbs/comment.txt');
-define('ACCOUNT_FILE', './bbs/account.csv');
 session_start();
 
-function getAccountWithFile() {
-        // account.csvを開く
-        $fh = openFile(ACCOUNT_FILE);
-
-        // fileの中身を全て取得して配列にする
-        $accounts = getAccounts($fh);
-        closeFile($fh);
-
-        return $accounts;
+function checkLogin($pdo, $id, $password) {
+    $account = findAccountByName($pdo, $id);
+    return !empty($account) && password_verify($password, $account['password']) ? $account : false;
 }
 
-function checkLogin($id, $password) {
-    $accounts = getAccountWithFile();
-    return existsAccount($accounts, $id, $password);
+function findAccountByName($pdo, $id) {
+    $sth = $pdo->prepare("SELECT * FROM accounts WHERE `name` = ?");
+    $sth->execute([$id]);
+    return $sth->fetch();
 }
 
-function checkDeplicateAccount($id) {
-    $accounts = getAccountWithFile();
-    return existsAccountId($accounts, $id);
+function checkDeplicateAccount($pdo, $name) {
+    $sth = $pdo->prepare("SELECT * FROM accounts WHERE `name` = ?");
+    $sth->execute([$name]);
+    $result = $sth->fetchAll();
+    return count($result) === 0;
 }
 
 function existsAccount($accounts, $id, $password) {
@@ -36,50 +32,27 @@ function existsAccount($accounts, $id, $password) {
     return false;
 }
 
-function existsAccountId($accounts, $id) {
-    // 配列データをloopして、一致する情報があるかを判定する
-    foreach($accounts as $account) {
-        if($account['id'] === $id) {
-            return false;
-        }
-    }
-
-    // 重複が無い場合にtrue
-    return true;
+function saveAccount($pdo, $name, $password, $isAdmin) {
+    $sth = $pdo->prepare("INSERT INTO `accounts` (`name`, `password`, admin_flag) VALUE(?, ?, ?)");
+    return $sth->execute([$name, password_hash($password, PASSWORD_BCRYPT), $isAdmin ? 1 : 0]);
 }
 
-function saveAccount($id, $password) {
-    // account.csvを開く
-    $fh = openFile(ACCOUNT_FILE);
-    if(fputcsv($fh, [$id, password_hash($password, PASSWORD_BCRYPT)]) === false) {
-        // @todo エラーハンドリングをもっとまじめにするよ
-        echo "やばいよ！";
-    }
+// function openFile($fileName, $mode = 'a+') {
+//     if(!file_exists($fileName)) {
+//         touch($fileName);
+//         chmod($fileName, 0777);
+//     }
+//     return fopen($fileName, $mode);
+// }
 
-}
+// function closeFile($fh) {
+//     fclose($fh);
+// }
 
-function openFile($fileName) {
-    if(!file_exists($fileName)) {
-        touch($fileName);
-        chmod($fileName, 0777);
-    }
-    return fopen($fileName, 'a+');
-}
-
-function closeFile($fh) {
-    fclose($fh);
-}
-
-function validationPost($name, $comment) {
+function validationPost($comment) {
     $result = [
-        'name' => true,
         'comment' => true
     ];
-
-    // name -> アルファベット(大文字/小文字)と数字のみ / 32文字までに制限 / 3文字以上
-    if(preg_match('/[A-Za-z0-9]{3,32}/', $name) !== 1) {
-        $result['name'] = false;
-    }
 
     // comment -> 1024文字(2のn乗です) / 許容する文字に制限は設けない
     if(mb_strlen($comment) > 1024) {
@@ -89,37 +62,31 @@ function validationPost($name, $comment) {
     return $result;
 }
 
-function requestPost($fh) {
-    $date = time();
-
-    if(fputcsv($fh, [$_POST['name'], $_POST['comment'], $date]) === false) {
-        // @todo エラーハンドリングをもっとまじめにするよ
-        echo "やばいよ！";
-    }
+function requestPost($pdo) {
+    $sth = $pdo->prepare("INSERT INTO `comments` (`account_id`, `comment`) VALUE(?, ?)");
+    return $sth->execute([$_SESSION['account']['id'], $_POST['comment']]);
 }
 
-function getAccounts($fh) {
-    $accountArray = [];
-    rewind($fh);
-    while (($buffer = fgetcsv($fh, 4096)) !== false) {
-        $accountArray[] = [
-            'id' => $buffer[0],
-            'pass' => $buffer[1]
-        ];
-    }
-    return $accountArray;
+function getBbs($pdo) {
+    $sth = $pdo->prepare("SELECT `comments`.`id`, `comment`, `create_date`, `name` FROM comments JOIN accounts ON comments.account_id = accounts.id;");
+    $sth->execute();
+    return $sth->fetchAll();
 }
 
+function deleteBbs($pdo, $id) {
+    $sth = $pdo->prepare("DELETE FROM comments WHERE id = ?;");
+    return $sth->execute([$id]);
 
-function getBbs($fh) {
-    $bbsArray = [];
-    rewind($fh);
-    while (($buffer = fgetcsv($fh, 4096)) !== false) {
-        $bbsArray[] = [
-            'name' => $buffer[0],
-            'comment' => $buffer[1],
-            'date' => $buffer[2]
-        ];
-    }
-    return $bbsArray;
 }
+
+function dbConnect() {
+    $pdo = new PDO("mysql:host=mysql;dbname=bbs", 'root', 'root');
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    return $pdo;
+}
+// function:関数定義
+//｛｝仮引数を中に入れられる
+//実引数：関数を実行するときに実際に渡す値
+//返り値
+//returnを書かなかった場合、NULLを返す
+//NULL型：ないよという意味
